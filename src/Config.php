@@ -96,23 +96,10 @@ class Config
                 if ($item['type'] == 'include' || $item['type'] == 'exclude') {
                     $status = $item['type'] == 'include';
 
-                    if (isset($item['namespace'])) {
-                        $ns = explode('\\', trim($item['namespace'], '\\'));
-                        $c->filter->add($status, $ns);
-                    }
-                    elseif (isset($item['class'])) {
-                        $c->filter->add($status, ...\Caper\Filter::parseName($item['class']));
-                    }
-                    elseif (isset($item['method'])) {
-                        $c->filter->add($status, ...\Caper\Filter::parseName($item['method']));
-                    }
-                    elseif (isset($item['all'])) {
-                        $c->filter->add($status, null);
-                    }
-                    else {
-                        $errors[] = "Unknown scan type {$type} at index {$idx}";
-                        continue;
-                    }
+                    $c->filter->add($status, $item['kind'], 
+                        isset($item['path']) ? $item['path'] : [],
+                        isset($item['name']) ? $item['name'] : []
+                    );
                 }
             }
         }

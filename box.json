@@ -1,5 +1,6 @@
 {
     "directories": ["bin", "src", "commands"],
+    "files": ["config.php"],
     "output": "build/caper.phar",
     "chmod": "0755",
     "finder": [
@@ -16,5 +17,9 @@
                 "vendor"
             ]
         }
-    ]
+    ],
+    "main": "bin/caper",
+    "stub": true,
+    "compactors": "Herrera\\Box\\Compactor\\Php",
+    "compression": "BZ2"
 }

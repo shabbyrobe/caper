@@ -87,11 +87,15 @@ class Parser
         $defaults = [
             'limit'      => null,
             'functions'  => null,
-            'entryTypes' => [Entry::class, Exit_::class, Return_::class],
+            'entryTypes' => null,
         ];
         $query = array_merge($defaults, $query);
 
         $limit = $query['limit'];
+
+        if (!$query['entryTypes']) {
+            $query['entryTypes'] = [Entry::class, Exit_::class, Return_::class];
+        }
 
         foreach ((array)$query['entryTypes'] as $t) { $entryTypeIndex[$t] = true; }
 
@@ -146,7 +150,6 @@ class Parser
 
             state_trace_v4: if ($state === self::XT_IN_V4) {
                 $parts = explode("\t", $line);
-                ++$record;
                 if ($limit && $record >= $limit) {
                     goto done;
                 }
@@ -160,6 +163,7 @@ class Parser
                         }
                         if ($yield) {
                             yield [$trace, Entry::fromFormat1($parts)];
+                            ++$record;
                         }
                     }
                 break;
@@ -167,12 +171,14 @@ class Parser
                 case Exit_::TYPE:
                     if (isset($entryTypeIndex[Exit_::class])) {
                         yield [$trace, Exit_::fromFormat1($parts)];
+                        ++$record;
                     }
                 break;
 
                 case Return_::TYPE:
                     if (isset($entryTypeIndex[Return_::class])) {
                         yield [$trace, Return_::fromFormat1($parts)];
+                        ++$record;
                     }
                 break;
                 

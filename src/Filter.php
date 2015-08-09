@@ -14,57 +14,79 @@ class Filter
 
     static function parseName($name)
     {
-        $method = null;
-        $exp = explode('->', $name);
+        $kind = null;
+
+        $exp = explode('->', $name, 2);
         if (isset($exp[1])) {
-            $method = $exp[1];
+            $ns = explode('\\', $exp[0]);
+            return ['method', $ns, $exp[1]];
         }
 
-        $ns = explode('\\', $exp[0]);
-        $class = array_pop($ns) ?: null;
+        $exp = explode('::', $name, 2);
+        if (isset($exp[1])) {
+            $ns = explode('\\', $exp[0]);
+            return ['static', $ns, $exp[1]];
+        }
 
-        return [$ns, $class, $method];
+        if ($name === '{main}') {
+            return ['main', [], null];
+        }
+        elseif (strpos($name, '{closure') === 0) {
+            return ['closure', [], $name];
+        }
+
+        $sep = strrpos($name, '\\');
+        if ($sep > 0) {
+            $ns = explode('\\', substr($name, 0, $sep));
+            return ['function', $ns, substr($name, $sep+1)];
+        }
+        else {
+            return ['function', [], $name];
+        }
     }
 
-    public function add($status, $ns=null, $class=null, $method=null)
+    public function add($status, $kind, $path, $func=null)
     {
         $status = !!$status;
 
         $cur = $this->root;
-        if (!$ns) {
-            $cur->ns = $status;
-            return;
+        if ($path) {
+            if (is_string($path)) {
+                $path = explode('\\', trim($path, '\\'));
+            }
         }
 
-        foreach ($ns as $name) {
-            if (!isset($cur->nodes[$name])) {
-                $cur->nodes[$name] = (object)['name' => $name, 'nodes' => []];
+        foreach ($path ?: [] as $part) {
+            if (!isset($cur->nodes[$part])) {
+                $cur->nodes[$part] = (object)['name' => $part, 'nodes' => []];
             }
-            $cur = $cur->nodes[$name];
+            $cur = $cur->nodes[$part];
         }
 
-        if ($class) {
-            if (!isset($cur->nodes[$class])) {
-                $cur->nodes[$class] = (object)['name' => $class, 'nodes' => []];
+        if ($kind === 'static' || $kind === 'method' || $kind === 'function') {
+            if (!$func) {
+                throw new \InvalidArgumentException();
             }
-            $cur = $cur->nodes[$class];
-
-            if ($method) {
-                $cur->methods[$method] = $status;
+            $cur->{$kind}[$func] = $status;
+        }
+        elseif ($kind === 'namespace' || $kind === 'class') {
+            if ($func) {
+                throw new \InvalidArgumentException();
             }
-            else {
-                $cur->class = $status;
-                if ($status == false) {
-                    $cur->methods = [];
+            $cur->$kind = $status;
+            if (!$status) {
+                if ($kind === 'namespace') {
+                    $cur->nodes = [];
+                    unset($cur->nodes);
+                    unset($cur->function);
+                }
+                else {
+                    unset($cur->method);
                 }
             }
         }
         else {
-            $cur->ns = $status;
-            if ($status == false) {
-                $cur->nodes = [];
-                $cur->methods = false;
-            }
+            throw new \InvalidArgumentException("Unknown kind $kind");
         }
     }
 
@@ -73,37 +95,41 @@ class Filter
         return $this->isIncluded(...self::parseName($name));
     }
 
-    function isIncluded($ns, $class=null, $method=null)
+    function isIncluded($kind, $path, $func=null)
     {
         $cur = $this->root;
-        $status = $cur->ns;
+        $status = $cur->namespace;
 
-        foreach ($ns as $name) {
+        foreach ($path as $name) {
             if (!isset($cur->nodes[$name])) {
                 return $status;
             }
             $cur = $cur->nodes[$name];
-            if (isset($cur->ns)) {
-                $status = $cur->ns;
+            if (isset($cur->namespace)) {
+                $status = $cur->namespace;
             }
         }
 
-        if ($class) {
-            if (!isset($cur->nodes[$class])) {
-                return $status;
+        if ($kind === 'namespace') {
+            return $status;
+        }
+        elseif ($kind === 'class') {
+            return !isset($cur->class) ? $status : $cur->class;
+        }
+        elseif ($kind === 'function' || $kind === 'static' || $kind === 'method') {
+            if (!$func) {
+                throw new \InvalidArgumentException();
             }
-            $cur = $cur->nodes[$class];
-            if (isset($cur->class)) {
+            if (($kind === 'static' || $kind === 'method') && isset($cur->class)) {
                 $status = $cur->class;
             }
-
-            if ($method) {
-                return isset($cur->methods[$method]) 
-                    ? $cur->methods[$method]
-                    : $status;
-            }
+            return isset($cur->{$kind}[$func]) ? $cur->{$kind}[$func] : $status;
         }
-
-        return $status;
+        elseif ($kind === 'closure' || $kind === 'main') {
+            return false;
+        }
+        else {
+            throw new \InvalidArgumentException("Unknown kind $kind");
+        }
     }
 }

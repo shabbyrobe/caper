@@ -18,14 +18,14 @@
         "psr-4": { "Caper\\Test\\": "test/lib/" }
     },
     "require": {
-        "docopt/docopt": "1.*",
-        "league/climate": "*",
+        "docopt/docopt": "~1",
+        "league/climate": "~3",
         "symfony/var-dumper": "*",
         "symfony/yaml": "*"
     },
     "require-dev": {
-        "phpunit/phpunit": "4.*",
-        "d11wtq/boris": "1.0.*",
+        "phpunit/phpunit": "~4",
+        "d11wtq/boris": "~1",
         "kherge/box": "~2"
     }
 }
