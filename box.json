@@ -1,0 +1,20 @@
+{
+    "directories": ["bin", "src", "commands"],
+    "output": "build/caper.phar",
+    "chmod": "0755",
+    "finder": [
+        {
+            "name": [
+                "*.php"
+            ],
+            "exclude": [
+                "tests",
+                "Tests",
+                "behat"
+            ],
+            "in": [
+                "vendor"
+            ]
+        }
+    ]
+}

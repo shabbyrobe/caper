@@ -1,0 +1,51 @@
+#!/usr/bin/env php
+<?php
+require __DIR__.'/../config.php';
+
+$usage = <<<'DOCOPT'
+Caper - Tools for working with XDebug function traces
+
+Usage: caper <command> [<args>...]
+
+Commands:
+  trace
+  run
+  php
+
+DOCOPT;
+
+$commands = ['trace', 'run', 'php'];
+
+$cli = new \League\CLImate\CLImate;
+
+$globalOptions = (new \Docopt\Handler(['optionsFirst'=>true]))->handle($usage);
+
+$command = $globalOptions['<command>'];
+if ($command) {
+    if (!in_array($command, $commands)) {
+        die("Unknown command ".escapeshellarg($command)."\n");
+    }
+
+    $_SERVER['argv'] = $argv = array_merge([$argv[0]], $globalOptions['<args>']);
+    
+    require CAPER_BASE_PATH."/commands/$command.php";
+}
+
+function caper_header()
+{
+    global $cli;
+
+    $header = 
+        "<light_blue>".
+        "┌───────────────────────┐\n".
+        "│  __                   │\n".
+        "│ / ()  _,       _  ,_  │\n".
+        "│|     / |  |/\_|/ /  | │\n".
+        "│ \___/\/|_/|_/ |_/   |/│\n".
+        "│          (|           │\n".
+        "└───────────────────────┘".
+        "</light_blue>\n"
+    ;
+    
+    $cli->out($header);
+}
