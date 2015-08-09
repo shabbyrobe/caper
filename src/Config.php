@@ -6,9 +6,7 @@ class Config
     public $cwd;
     public $scripts = [];
     public $filter;
-    public $bootstrap = [
-        'vendor/autoload.php',
-    ];
+    public $bootstrap = [];
 
     function __construct($cwd, \Caper\Filter $filter=null)
     {
@@ -50,7 +48,8 @@ class Config
 
         $errors = [];
 
-        if ($diff = array_diff(array_keys($config), ['scripts', 'scan'])) {
+        $validKeys = ['scripts', 'scan', 'bootstrap'];
+        if ($diff = array_diff(array_keys($config), $validKeys)) {
             $errors[] = 'Unknown config keys: '.implode(', ', $diff);
         }
 
@@ -69,6 +68,7 @@ class Config
             if (!$valid) {
                 $errors[] = "'bootstrap' must be a list of scripts or single script";
             }
+            $c->bootstrap = $bootstrap;
         }
 
         scripts: if (isset($config['scripts'])) {

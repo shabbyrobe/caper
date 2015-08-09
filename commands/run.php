@@ -172,7 +172,7 @@ function caper_fetch_signatures(\Caper\Config $config, $functions)
     $ret = proc_close($p);
 
     if ($ret !== 0) {
-        throw new \RuntimeException();
+        throw new \RuntimeException($err);
     }
 
     $data = @unserialize($out);
