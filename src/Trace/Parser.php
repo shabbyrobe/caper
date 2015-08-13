@@ -149,6 +149,12 @@ class Parser
             }
 
             state_trace_v4: if ($state === self::XT_IN_V4) {
+                // if the trace is aborted with CTRL-C, there's an empty line down the bottom.
+                // let's just skip all empty lines anyway.
+                if (!$line) {
+                    continue;
+                }
+
                 $parts = explode("\t", $line);
                 if ($limit && $record >= $limit) {
                     goto done;
