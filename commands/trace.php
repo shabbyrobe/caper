@@ -2,10 +2,12 @@
 $usage = <<<'DOCOPT'
 Usage: trace records [--type=<type>...] [--limit=<limit>] <file>
        trace pop <file>
+       trace calls [--config=<file>] [--show-class-names] <file>...
 
 Options:
-  --type=<type>  Record type (entry, exit, return). [default: all]
-  --limit=<num>  Limit to n records
+  --type=<type>    Record type (entry, exit, return). [default: all]
+  --limit=<num>    Limit to n records
+  --config=<file>  Use config file for report filters
 
 DOCOPT;
 
@@ -42,5 +44,45 @@ elseif ($options['pop']) {
         $out['trace'] = $traceId;
         $out['stack'] = $stack;
         echo json_encode($out)."\n";
+    }
+}
+
+elseif ($options['calls']) {
+    $withSignatures = true;
+    $showClassNames = $options['--show-class-names'];
+
+    $cwd = getcwd();
+
+    if ($options['--config']) {
+        $config = \Caper\Config::fromYaml(file_get_contents($options['--config']), $cwd);
+    }
+    else {
+        // TODO: config from args
+        $filter = new \Caper\Filter();
+        $filter->add(true, 'namespace', []);
+        $config = new \Caper\Config($cwd, $filter);
+        $withSignatures = false;
+    }
+
+    $traceFiles = $options['<file>'];
+
+    parse: {
+        $collector = new \Caper\Stack\Collector($config, $parser);
+        $cli->br()->bold()->cyan()->out("Parsing trace (this may take a while)")->br(); 
+        foreach ($traceFiles as $file) {
+            $collector->collect($file);
+        }
+
+        if ($withSignatures) {
+            $cli->br()->bold()->cyan()->out("Fetching signatures")->br(); 
+            $collector->loadSignatures();
+        }
+
+        $result = $collector->result();
+    }
+
+    dump: {
+        $dumper = new \Caper\Stack\Dumper($cli);
+        $dumper->out($collector, $showClassNames);
     }
 }

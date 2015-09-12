@@ -1,7 +1,7 @@
 <?php
 namespace Caper;
 
-final class Trace
+final class Tracer
 {
     public static $ini = [
         'xdebug.trace_format' => 1,

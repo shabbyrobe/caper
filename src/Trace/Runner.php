@@ -90,7 +90,7 @@ class Runner
         $cmd = "php ";
         if (!isset($script['trace']) || $script['trace']) {
             $info = pathinfo($file);
-            $ini = \Caper\Trace::$ini;
+            $ini = \Caper\Tracer::$ini;
             $ini['xdebug.auto_trace'] = 1;
             $ini['xdebug.trace_output_name'] = $info['filename'];
             $ini['xdebug.trace_output_dir']  = $info['dirname'];

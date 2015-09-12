@@ -5,11 +5,11 @@ class Listener extends \PHPUnit_Framework_BaseTestListener
 {
     public function startTest(\PHPUnit_Framework_Test $test)
     {
-        \Caper\Trace::start();
+        \Caper\Tracer::start();
     }
 
     public function endTest(\PHPUnit_Framework_Test $test, $time)
     {
-        \Caper\Trace::stop();
+        \Caper\Tracer::stop();
     }
 }

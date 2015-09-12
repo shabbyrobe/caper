@@ -5,17 +5,40 @@ class Filter
 {
     private $root;
 
+    public static $kinds = [
+        'namespace', 'class', 'static', 'method', 'function', 'main', 'closure',
+    ];
+
+    public static $statements = [
+        'require' => true, 'require_once' => true,
+        'include' => true, 'include_once' => true,
+        'exit'    => true, 'die'          => true,
+        'empty'   => true, 'isset'        => true,
+        'eval'    => true, 'unset'        => true,
+    ];
+
     function __construct()
     {
         $this->root = (object)[
+            'namespace' => '',
             'nodes' => [],
         ];
     }
 
-    static function parseName($name)
+    /**
+     * Converts a stringly function name as seen in an XDebug trace into a
+     * 3-tuple:
+     * 
+     *     ['kind', ['qualifying', 'prefix'], 'memberName']
+     *
+     * The qualifying prefix can be either a class name or a
+     * namespace name depending on the member. 
+     */
+    static function parseFunctionName($name)
     {
         $kind = null;
 
+        $name = ltrim($name, '\\');
         $exp = explode('->', $name, 2);
         if (isset($exp[1])) {
             $ns = explode('\\', $exp[0]);
@@ -41,10 +64,26 @@ class Filter
             return ['function', $ns, substr($name, $sep+1)];
         }
         else {
-            return ['function', [], $name];
+            if (!isset(static::$statements[$name])) {
+                return ['function', [], $name];
+            } else {
+                return ['statement', [], $name];
+            }
         }
     }
 
+    /**
+     * Accepts a superset of structures emitted by 'parseFunctionName' - also
+     * accepts 'class' or 'namespace' kinds.
+     *
+     * @param $status bool
+     * @param $kind string  See self::$kinds
+     * @param $path array|string  Qualifying prefix. If kind is 'class',
+     *     'method' or 'static', $path is a class name. If kind is 'function' or
+     *     'namespace', $path is a namespace.
+     * @param $func string  If kind is 'function', 'method' or 'static',
+     *     $func is the function name without a qualifying prefix.
+     */
     public function add($status, $kind, $path, $func=null)
     {
         $status = !!$status;
@@ -90,17 +129,30 @@ class Filter
         }
     }
 
-    function isNameIncluded($name)
+    /**
+     * Checks if an xdebug function string is included by the filter
+     */
+    function isFunctionIncluded($function)
     {
-        return $this->isIncluded(...self::parseName($name));
+        return $this->isIncluded(...self::parseFunctionName($function));
     }
 
+    /**
+     * Accepts a superset of structures emitted by 'parseFunctionName' - also
+     * accepts 'class' or 'namespace' kinds.
+     *
+     * @see self->add() for an explanation of arguments.
+     */
     function isIncluded($kind, $path, $func=null)
     {
         $cur = $this->root;
-        $status = $cur->namespace;
+
+        // for classes, the 'namespace' portion ends one segment before
+        // the end. prevStatus lets us keep track of that.
+        $status = $prevStatus = $cur->namespace;
 
         foreach ($path as $name) {
+            $prevStatus = $status;
             if (!isset($cur->nodes[$name])) {
                 return $status;
             }
@@ -111,10 +163,16 @@ class Filter
         }
 
         if ($kind === 'namespace') {
-            return $status;
+            if ($func) {
+                throw new \InvalidArgumentException();
+            }
+            return $status == true;
         }
         elseif ($kind === 'class') {
-            return !isset($cur->class) ? $status : $cur->class;
+            if ($func) {
+                throw new \InvalidArgumentException();
+            }
+            return (!isset($cur->class) ? $prevStatus : $cur->class) == true;
         }
         elseif ($kind === 'function' || $kind === 'static' || $kind === 'method') {
             if (!$func) {
@@ -123,9 +181,10 @@ class Filter
             if (($kind === 'static' || $kind === 'method') && isset($cur->class)) {
                 $status = $cur->class;
             }
-            return isset($cur->{$kind}[$func]) ? $cur->{$kind}[$func] : $status;
+            return (isset($cur->{$kind}[$func]) ? $cur->{$kind}[$func] : $status) == true;
         }
-        elseif ($kind === 'closure' || $kind === 'main') {
+        elseif ($kind === 'closure' || $kind === 'main' || $kind === 'statement') {
+            // TODO: maybe these should be supported in some way
             return false;
         }
         else {

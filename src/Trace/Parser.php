@@ -121,7 +121,7 @@ class Parser
 
         parse_line:
             state_new: if ($state === self::XT_IN_NEW) {
-                $trace = (object)['id' => $traceIndex++, 'meta' => []];
+                $trace = new Info($traceIndex++);
                 $state = self::XT_IN_HDR;
             }
 
@@ -256,7 +256,7 @@ class Parser
             // for 'xdebug_trace_start' appears first
 
             if ($record instanceof Entry) {
-                $stack[$record->level] = (object)['entry' => $record, 'exit' => null, 'return' => null];
+                $stack[$record->level] = new \Caper\Trace\Call($record);
                 $entryStack[] = $record;
             }
             elseif ($record instanceof Exit_) {
