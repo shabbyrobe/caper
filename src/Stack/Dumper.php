@@ -14,7 +14,9 @@ class Dumper
 
         foreach ($collector->callCounts($showClassNames) as $name=>$callFn) {
             $firstCall = current($callFn)['callInfo'];
-            $cli->lightGreen()->bold()->out($firstCall[2]->entry->function);
+            $firstEntry[Collector::CALL_INFO]->entry;
+
+            $cli->lightGreen()->bold()->out($firstEntry->function);
 
             $headerColour = 'light_blue';
             $rows = [];

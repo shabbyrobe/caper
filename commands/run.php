@@ -4,7 +4,7 @@ Usage: run [--show-class-names]
 
 DOCOPT;
 
-$options = (new \Docopt\Handler())->handle($usage);
+$options = caper_opt_handle($usage);
 
 $cwd = getcwd();
 $configFile = "$cwd/caper.yml";

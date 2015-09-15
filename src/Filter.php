@@ -5,18 +5,6 @@ class Filter
 {
     private $root;
 
-    public static $kinds = [
-        'namespace', 'class', 'static', 'method', 'function', 'main', 'closure',
-    ];
-
-    public static $statements = [
-        'require' => true, 'require_once' => true,
-        'include' => true, 'include_once' => true,
-        'exit'    => true, 'die'          => true,
-        'empty'   => true, 'isset'        => true,
-        'eval'    => true, 'unset'        => true,
-    ];
-
     function __construct()
     {
         $this->root = (object)[
@@ -26,54 +14,7 @@ class Filter
     }
 
     /**
-     * Converts a stringly function name as seen in an XDebug trace into a
-     * 3-tuple:
-     * 
-     *     ['kind', ['qualifying', 'prefix'], 'memberName']
-     *
-     * The qualifying prefix can be either a class name or a
-     * namespace name depending on the member. 
-     */
-    static function parseFunctionName($name)
-    {
-        $kind = null;
-
-        $name = ltrim($name, '\\');
-        $exp = explode('->', $name, 2);
-        if (isset($exp[1])) {
-            $ns = explode('\\', $exp[0]);
-            return ['method', $ns, $exp[1]];
-        }
-
-        $exp = explode('::', $name, 2);
-        if (isset($exp[1])) {
-            $ns = explode('\\', $exp[0]);
-            return ['static', $ns, $exp[1]];
-        }
-
-        if ($name === '{main}') {
-            return ['main', [], null];
-        }
-        elseif (strpos($name, '{closure') === 0) {
-            return ['closure', [], $name];
-        }
-
-        $sep = strrpos($name, '\\');
-        if ($sep > 0) {
-            $ns = explode('\\', substr($name, 0, $sep));
-            return ['function', $ns, substr($name, $sep+1)];
-        }
-        else {
-            if (!isset(static::$statements[$name])) {
-                return ['function', [], $name];
-            } else {
-                return ['statement', [], $name];
-            }
-        }
-    }
-
-    /**
-     * Accepts a superset of structures emitted by 'parseFunctionName' - also
+     * Accepts a superset of structures emitted by 'Caper\Func::parse()' - also
      * accepts 'class' or 'namespace' kinds.
      *
      * @param $status bool
@@ -134,11 +75,11 @@ class Filter
      */
     function isFunctionIncluded($function)
     {
-        return $this->isIncluded(...self::parseFunctionName($function));
+        return $this->isIncluded(...Func::parse($function));
     }
 
     /**
-     * Accepts a superset of structures emitted by 'parseFunctionName' - also
+     * Accepts a superset of structures emitted by 'Caper\Func::parse()' - also
      * accepts 'class' or 'namespace' kinds.
      *
      * @see self->add() for an explanation of arguments.

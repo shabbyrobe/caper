@@ -3,6 +3,11 @@ namespace Caper\Stack;
 
 class Collector
 {
+    const CALL_NAME     = 0;
+    const CALL_TRACE_ID = 1;
+    const CALL_INFO     = 2;
+    const CALL_STACK    = 3;
+
     private $parser;
     private $traceFiles;
 
@@ -14,7 +19,7 @@ class Collector
 
     /**
      * Array of 4-tuples containing ['parsedName', 'traceId', 'call', 'stack']
-     *   For parsedName, see Caper\Filter::parseFunctionName
+     *   For parsedName, see Caper\Func::parse
      *   For traceId, see Caper\Trace\Info
      *   'call' contains a Caper\Trace\Call
      *   'stack' contains an array of Caper\Trace\Record\Entry_ of the entire stack for 'call'
@@ -22,6 +27,8 @@ class Collector
      * This is a 4-tuple and not an object because this is the slowest part of
      * the code by a street, and using an object slows things down by about 40% when
      * you have xdebug loaded, which you probably do if you're using Caper.
+     *
+     * See Collector::CALL_* for indexes
      */
     private $functions = [];
 
@@ -41,7 +48,7 @@ class Collector
     function collect($traceFile)
     {
         foreach ($this->parser->stackIterator($traceFile) as list ($traceId, $call, $stack)) {
-            $parsedName = \Caper\Filter::parseFunctionName($call->entry->function);
+            $parsedName = \Caper\Func::parse($call->entry->function);
 
             if ($this->config->filter->isIncluded(...$parsedName)) {
                 $this->functions[$call->entry->function][] = [$parsedName, $traceId, $call, $stack];

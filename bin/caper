@@ -18,7 +18,7 @@ $commands = ['trace', 'run', 'php'];
 
 $cli = new \League\CLImate\CLImate;
 
-$globalOptions = (new \Docopt\Handler(['optionsFirst'=>true]))->handle($usage);
+$globalOptions = caper_opt_handle($usage, ['optionsFirst'=>true]);
 
 $command = $globalOptions['<command>'];
 if ($command) {
@@ -29,23 +29,4 @@ if ($command) {
     $_SERVER['argv'] = $argv = array_merge([$argv[0]], $globalOptions['<args>']);
     
     require CAPER_BASE_PATH."/commands/$command.php";
-}
-
-function caper_header()
-{
-    global $cli;
-
-    $header = 
-        "<light_blue>".
-        "┌───────────────────────┐\n".
-        "│  __                   │\n".
-        "│ / ()  _,       _  ,_  │\n".
-        "│|     / |  |/\_|/ /  | │\n".
-        "│ \___/\/|_/|_/ |_/   |/│\n".
-        "│          (|           │\n".
-        "└───────────────────────┘".
-        "</light_blue>\n"
-    ;
-    
-    $cli->out($header);
 }

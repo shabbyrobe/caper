@@ -115,6 +115,34 @@ function caper_function_param_str($name, $arg)
     return $param;
 }
 
+function caper_opt_handle($usage, $options=[])
+{
+    $options['exit'] = false;
+    $out = (new \Docopt\Handler($options))->handle($usage);
+    
+    if ($out->status != 0) {
+        echo rtrim($out->output, "\n")."\n";
+        exit($out->status);;
+    }
+    return $out;
+}
+
+function caper_header(\League\CLImate\CLIMate $cli)
+{
+    $header = 
+        "<light_blue>".
+        "┌───────────────────────┐\n".
+        "│  __                   │\n".
+        "│ / ()  _,       _  ,_  │\n".
+        "│|     / |  |/\_|/ /  | │\n".
+        "│ \___/\/|_/|_/ |_/   |/│\n".
+        "│          (|           │\n".
+        "└───────────────────────┘".
+        "</light_blue>\n"
+    ;
+    $cli->out($header);
+}
+
 /**
  * Opens a subprocess, loads the bootstrap files in your Caper\Config and 
  * retrieves signature details for the functions passed.
