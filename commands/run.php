@@ -1,6 +1,11 @@
 <?php
 $usage = <<<'DOCOPT'
-Usage: run [--show-class-names]
+Run traces defined for a project in a caperfile
+
+Usage: run [--show-class-names] [<script>...]
+
+Reads configuration from caper.yml (see `caper help caperfile`
+for more information) and runs 
 
 DOCOPT;
 
@@ -21,9 +26,16 @@ $parser = new \Caper\Trace\Parser;
 caper_header($cli);
 
 scripts: {
-    $cli->bold()->cyan()->out("Running scripts")->br();
-
-    $runner->run($config);
+    if ($options['<script>']) {
+        foreach ($options['<script>'] as $script) {
+            $cli->bold()->cyan()->out("Running script: $script")->br();
+            $runner->run($config, $script);
+        }
+    }
+    else {
+        $cli->bold()->cyan()->out("Running all scripts")->br();
+        $runner->runAll($config);
+    }
 }
 
 parse: {

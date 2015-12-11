@@ -14,7 +14,7 @@ class Dumper
 
         foreach ($collector->callCounts($showClassNames) as $name=>$callFn) {
             $firstCall = current($callFn)['callInfo'];
-            $firstEntry[Collector::CALL_INFO]->entry;
+            $firstEntry = $firstCall[Collector::CALL_INFO]->entry;
 
             $cli->lightGreen()->bold()->out($firstEntry->function);
 
@@ -52,4 +52,3 @@ class Dumper
         }
     }
 }
-

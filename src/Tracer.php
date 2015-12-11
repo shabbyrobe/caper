@@ -30,7 +30,7 @@ final class Tracer
     static function init()
     {
         if (!extension_loaded('xdebug')) {
-            throw new \RuntimeException();
+            throw new \RuntimeException('xdebug is not loaded');
         }
         self::$traceFile = getenv('CAPER_TRACE_FILE');
         if (!self::$traceFile) {

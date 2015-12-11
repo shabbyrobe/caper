@@ -8,9 +8,9 @@ Caper - Tools for working with XDebug function traces
 Usage: caper <command> [<args>...]
 
 Commands:
-  trace
-  run
-  php
+  trace   Read, print, parse and query xdebug trace files
+  run     Run traces defined for a project in a caperfile
+  php     Run a PHP script using Caper's trace options
 
 DOCOPT;
 
@@ -18,6 +18,11 @@ $commands = ['trace', 'run', 'php'];
 
 $cli = new \League\CLImate\CLImate;
 
+if (!isset($argv[1])) {
+    caper_header($cli);
+    echo rtrim($usage)."\n";
+    exit;
+}
 $globalOptions = caper_opt_handle($usage, ['optionsFirst'=>true]);
 
 $command = $globalOptions['<command>'];

@@ -72,7 +72,7 @@ class Config
         }
 
         scripts: if (isset($config['scripts'])) {
-            foreach ($config['scripts'] as $idx => $script) {
+            foreach ($config['scripts'] as $key => $script) {
                 if (!is_array($script) || !isset($script['type'])) {
                     $errors[] = "Script at index $idx invalid";
                     continue;
@@ -81,7 +81,7 @@ class Config
                     $errors[] = "Unknown script type at index $idx";
                     continue;
                 }
-                $c->scripts[] = $script;
+                $c->scripts[$key] = $script;
             }
         }
 

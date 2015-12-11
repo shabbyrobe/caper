@@ -25,25 +25,33 @@ class Runner
         $this->outputPath = $outputPath;
     }
 
-    public function run($config)
+    public function runAll($config)
     {
-        foreach ($config->scripts as $script) {
-            if (!in_array($script['type'], self::$handledScripts)) {
-                throw new \Exception("Unknown script type {$script['type']}");
-            }
+        foreach ($config->scripts as $scriptId => $script) {
+            $this->run($config, $scriptId);
+        }
+    }
+
+    public function run($config, $scriptId)
+    {
+        if (!isset($config->scripts[$scriptId])) {
+            throw new \InvalidArgumentException("Unknown script $script");
         }
 
-        foreach ($config->scripts as $idx=>$script) {
-            $file = $this->files[] = "{$this->outputPath}/{$this->runId}-$idx.xt";
-            $type = $script['type'];
-            $this->{"script$type"}($config, $file, $script);
+        $script = $config->scripts[$scriptId];
+        if (!in_array($script['type'], self::$handledScripts)) {
+            throw new \Exception("Unknown script type {$script['type']}");
         }
+
+        $file = $this->files[] = "{$this->outputPath}/{$this->runId}-$scriptId.xt";
+        $type = $script['type'];
+        $this->{"script$type"}($config, $file, $script);
     }
 
     public function scriptShell($config, $file, $script, $env=[])
     {
         if (!preg_match('/\.xt$/', $file)) {
-            throw new \Exception("Script name has to end with .xt");
+            throw new \Exception("Output file name has to end with .xt");
         }
 
         $args = &$script['args'];
