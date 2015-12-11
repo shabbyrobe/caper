@@ -18,7 +18,7 @@ $config = \Caper\Config::fromYaml(file_get_contents($configFile), $cwd);
 $runner = new \Caper\Trace\Runner();
 $parser = new \Caper\Trace\Parser;
 
-caper_header();
+caper_header($cli);
 
 scripts: {
     $cli->bold()->cyan()->out("Running scripts")->br();
@@ -29,7 +29,7 @@ scripts: {
 parse: {
     $collector = new \Caper\Stack\Collector($config, $parser);
     $cli->br()->bold()->cyan()->out("Parsing trace (this may take a while)")->br(); 
-    foreach ($runner->traceFiles as $file) {
+    foreach ($runner->files as $file) {
         $collector->collect($file);
     }
 

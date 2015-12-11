@@ -52,10 +52,10 @@ class Runner
             throw new \RuntimeException();
         }
 
-        $env = [
+        $env = array_merge($env, [
             'CAPER_RUN' => true,
             'CAPER_TRACE_FILE' => $file,
-        ];
+        ]);
 
         foreach ($args ?: [] as $arg) {
             $cmd .= ' '.escapeshellarg($arg);
@@ -72,7 +72,7 @@ class Runner
         }
     }
 
-    public function scriptPHP($config, $file, $script)
+    public function scriptPHP($config, $file, $script, $env=[])
     {
         if (!preg_match('/\.xt$/', $file)) {
             // XDEBUG_TRACE_NAKED_FILENAME is a start, but it doesn't cover
@@ -102,6 +102,6 @@ class Runner
         $cmd .= $name;
         $script['cmd'] = $cmd;
 
-        return $this->scriptShell($config, $file, $script);
+        return $this->scriptShell($config, $file, $script, $env);
     }
 }

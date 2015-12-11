@@ -120,7 +120,7 @@ function caper_opt_handle($usage, $options=[])
     $options['exit'] = false;
     $out = (new \Docopt\Handler($options))->handle($usage);
     
-    if ($out->status != 0) {
+    if ($out->status != 0 || $out->output) {
         echo rtrim($out->output, "\n")."\n";
         exit($out->status);;
     }
