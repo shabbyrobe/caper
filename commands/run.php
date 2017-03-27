@@ -2,10 +2,13 @@
 $usage = <<<'DOCOPT'
 Run traces defined for a project in a caperfile
 
-Usage: run [--show-class-names] [<script>...]
+Usage: run [--show-class-names] [--output=<path>] [<script>...]
 
 Reads configuration from caper.yml (see `caper help caperfile`
 for more information) and runs 
+
+Options:
+  --output=<path>  Save trace files to this location
 
 DOCOPT;
 
@@ -20,8 +23,8 @@ if (!file_exists($configFile)) {
 $showClassNames = $options['--show-class-names'];
 
 $config = \Caper\Config::fromYaml(file_get_contents($configFile), $cwd);
-$runner = new \Caper\Trace\Runner();
-$parser = new \Caper\Trace\Parser;
+$runner = new \Caper\Trace\Runner($options['--output']);
+$parser = new \Caper\Trace\Parser();
 
 caper_header($cli);
 
@@ -55,3 +58,4 @@ dump: {
     $dumper = new \Caper\Stack\Dumper($cli);
     $dumper->out($collector, $showClassNames);
 }
+
