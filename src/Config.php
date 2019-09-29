@@ -30,7 +30,6 @@ class Config
 
     static function fromJson($json, $cwd)
     {
-        $parser = new \Symfony\Component\Yaml\Parser;
         $config = self::fromArray(json_decode($json) ?: []);
         return $config;
     }

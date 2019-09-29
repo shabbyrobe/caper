@@ -215,10 +215,10 @@ class Parser
                 }
             }
 
-        next_record:
+        next_record:;
         }
 
-    done:
+    done:;
     }
 
     function stackIterator($file)
